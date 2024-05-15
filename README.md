@@ -23,6 +23,6 @@ app.run("127.0.0.1", <your custom port>, debug=True)
 
 ## License
 
-The code from [VISinger2](https://github.com/zhangyongmao/VISinger2) keeps original copyright.
+The code from [VISinger2](https://github.com/zhangyongmao/VISinger2) (All files outside [backend](https://github.com/resonate101/VISinger2-Interactive-System/tree/master/backend)) keeps original copyright.
 
-Remaining part of repository published under AGPL3.
+Remaining part (All files in [backend](https://github.com/resonate101/VISinger2-Interactive-System/tree/master/backend)) of repository published under AGPL3.
