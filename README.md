@@ -14,6 +14,11 @@ pip3 install flask
 
 Then run the `main.py` and turn to http://127.0.0.1:9980 on your browser.
 
+```shell
+cd backend
+python3 main.py
+```
+
 Prefering another port? It's ok to change.
 
 ```python
