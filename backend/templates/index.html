@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <title>VISinger2 交互系统</title>
+  <script src="/static/popper.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.5.0/axios.min.js"></script>
+  <link rel="stylesheet" href="/static/index.css">
+  <script src="/static/base.js"></script>
+  <script src="/static/train.js"></script>
+  <script src="/static/infer.js"></script>
+  <script src="/static/config.js"></script>
+</head>
+
+<body class="m-0 border-0 border-0">
+  <div id="page-box" class="container-sm vh-100 text-center">
+
+    <div class="row h-100">
+      <div id="sidebar" class="h-100 border" style="width: 18%">
+
+        <div class="row row-cols-1">
+          <div class="col m-0 pt-2 pb-2 sidebar-items border-bottom text-break" id="header-col">
+            <strong>VISinger2 交互系统</strong>
+          </div>
+        </div>
+
+        <div id="menu-box" class="row row-cols-1">
+          <div class="col m-0 sidebar-items">训练</div>
+          <div class="col m-0 sidebar-items">交互编辑</div>
+          <div class="col m-0 sidebar-items">推理</div>
+          <div class="col m-0 sidebar-items">配置</div>
+        </div>
+
+      </div>
+
+      <div id="content" class="p-3 h-100 border" style="width: 82%">
+
+        <div class="h-100 d-none">
+          <div class="row mb-4 justify-content-center">
+            <h4>训练转发</h4>
+
+            <div class="row p-3">
+              <textarea id="current-output" rows="20" style="resize: none;"
+                disabled>未选中正在训练的组。选择一个正在训练的组，从而输出训练信息。</textarea>
+            </div>
+
+            <div class="row mt-4">
+
+              <div class="col-auto">
+                <label for="current-group" class="col-form-label">选择正在运行的组：</label>
+              </div>
+              <select class="form-select" id="current-group" style="width: 10rem">
+                <option selected value=""></option>
+              </select>
+
+              <div class="col-auto">
+                <button id="current-open" class="btn btn-primary">查看</button>
+              </div>
+
+              <div class="col-auto">
+                <button id="current-close" class="btn btn-primary">停止查看</button>
+              </div>
+
+              <div class="col-auto">
+                <label for="current-max-line" class="col-form-label">最大历史行数：</label>
+              </div>
+
+              <div class="col-auto">
+                <input id="current-max-line" type="number" min="20" step="1" max="1000" class="form-control">
+              </div>
+            </div>
+
+            <hr class="mt-4">
+
+            <h4>训练</h4>
+
+            <div class="row mt-4">
+
+              <div class="col-auto">
+                <label for="train-group-chose" class="col-form-label">选择组：</label>
+              </div>
+              <select class="form-select" id="train-group-chose" style="width: 10rem">
+                <option selected value=""></option>
+              </select>
+
+              <div class="col-auto">
+                <button id="train-run-preprocess" class="btn btn-primary">运行预训练</button>
+              </div>
+
+              <div class="col-auto">
+                <button id="train-run-process" class="btn btn-primary">开始训练</button>
+              </div>
+
+              <div class="col-auto">
+                <button id="train-stop-process" class="btn btn-primary">停止训练</button>
+              </div>
+
+            </div>
+
+            <div class="row mt-4" style="align-items: center;">
+
+              <div class="col-auto" id="preprocess-progress-box"
+                style="display: none; align-content: center; align-items: center;">
+                <label for="preprocess-progress" class="col-form-label">预训练进度：</label>
+              </div>
+
+              <div class="col-5" style="display: none; ">
+                <div class="progress" style="flex: 1; border: 1px solid #ccc;" role="progressbar">
+                  <div id="preprocess-progress" class="progress-bar" style="width: 0%">0%</div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="row mt-4">
+              <h5 class="text-start">组信息：</h5>
+              <div id="train-group-info" class="row text-start"></div>
+            </div>
+
+            <hr class="mt-4">
+
+            <h4>训练数据添加</h4>
+
+            <form action="/test" method="post" id="TrainDataForm" onsubmit="event.preventDefault();">
+
+              <div class=" row mt-4">
+                <div class="col-auto">
+                  <label for="train-data-file" class="col-form-label">歌唱音频：</label>
+                </div>
+                <div class="col-auto">
+                  <input class="form-control" type="file" name="audio" id="train-data-file">
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-auto">
+                  <label for="train-data-texts" class="col-form-label">歌词序列：</label>
+                </div>
+                <div class="col-8">
+                  <input class="form-control" type="text" name="texts" id="train-data-texts">
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-auto">
+                  <label for="train-data-phones" class="col-form-label">音素序列（空格隔开）：</label>
+                </div>
+                <div class="col-8">
+                  <input class="form-control" type="text" name="phones" id="train-data-phones">
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-auto">
+                  <label for="train-data-pitches" class="col-form-label">音高序列（空格隔开）：</label>
+                </div>
+                <div class="col-8">
+                  <input class="form-control" type="text" name="pitches" id="train-data-pitches">
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-auto">
+                  <label for="train-notes-dur" class="col-form-label">歌词每字持续时长序列（空格隔开）：</label>
+                </div>
+                <div class="col-8">
+                  <input class="form-control" type="text" name="note_durs" id="train-notes-dur">
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-auto">
+                  <label for="train-phones-dur" class="col-form-label">音素持续时长序列（空格隔开）：</label>
+                </div>
+                <div class="col-8">
+                  <input class="form-control" type="text" name="phone_durs" id="train-phones-dur">
+                </div>
+              </div>
+
+              <div class="row mt-4 mb-4">
+                <div class="col-auto">
+                  <label for="train-data-add-group" class="col-form-label">选择组：</label>
+                </div>
+                <select class="form-select" id="train-data-add-group" name="group" style="width: 10rem">
+                  <option selected value=""></option>
+                </select>
+
+                <div class="col-2">
+                  <button id="train-data-add" class="btn btn-primary">添加</button>
+                </div>
+              </div>
+            </form>
+
+          </div>
+        </div>
+
+        <div class=" h-100 d-none">
+          <div class="row mb-4">
+            <h4>钢琴窗交互编辑</h4>
+          </div>
+
+          <canvas id="pianoroll"></canvas>
+
+          <div class="row mt-4 justify-content-center">
+            <div class="col-auto ms-3 me-3">
+              <button id="piano-clear" class="btn btn-primary">清空钢琴窗</button>
+            </div>
+
+            <div class="col-auto">
+              <label for="zoom-direction" class="col-form-label">缩放方向：</label>
+            </div>
+            <select class="form-select" id="zoom-direction" style="width: 6rem">
+              <option selected value="xy">整体</option>
+              <option value="x">X</option>
+              <option value="y">Y</option>
+            </select>
+            <div class="col-auto ms-3 me-3">
+              <button id="piano-zoom-in" class="btn btn-primary">放大</button>
+            </div>
+            <div class="col-auto ms-3 me-3">
+              <button id="piano-zoom-out" class="btn btn-primary">缩小</button>
+            </div>
+            <div class="col-auto ms-3 me-3">
+              <button id="piano-zoom-default" class="btn btn-primary">缩放复位</button>
+            </div>
+          </div>
+
+          <div class="row mt-4 justify-content-center">
+            <div class="col-auto">
+              <label for="piano-bars" class="col-form-label">小节数：</label>
+            </div>
+            <div class="col-auto w-2">
+              <input type="number" style="width: 5rem" id="piano-bars" class="form-control">
+            </div>
+
+            <div class="col-auto">
+              <label for="beat-unit" class="col-form-label">拍单位（x 分音符）：</label>
+            </div>
+            <div class="col-auto">
+              <input type="number" style="width: 5rem" id="beat-unit" class="form-control">
+            </div>
+
+            <div class="col-auto">
+              <label for="bar-beats" class="col-form-label">每小节拍数：</label>
+            </div>
+            <div class="col-auto">
+              <input type="number" style="width: 5rem" id="bar-beats" class="form-control">
+            </div>
+
+            <div class="col-auto">
+              <label for="bpm" class="col-form-label">每分钟拍数：</label>
+            </div>
+            <div class="col-auto">
+              <input type="number" style="width: 6rem" id="bpm" class="form-control">
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row mt-4 justify-content-center">
+            <div class="col-auto">
+              <label for="piano-save-space" class="col-form-label">组名：</label>
+            </div>
+            <select class="form-select" id="piano-save-space" style="width: 10rem">
+              <option selected value=""></option>
+            </select>
+
+            <div class="col-auto">
+              <label for="piano-save-name" class="col-form-label">保存为：</label>
+            </div>
+            <div class="col-auto">
+              <input type="text" style="width: 15rem" id="piano-save-name" class="form-control">
+            </div>
+
+            <div class="col-auto">
+              <button id="piano-save-btn" class="btn btn-primary">保存</button>
+            </div>
+          </div>
+
+          <div class="row mt-4 mb-4 justify-content-center">
+            <div class="col-auto">
+              <label for="piano-open-space" class="col-form-label">组名：</label>
+            </div>
+            <select class="form-select" id="piano-open-space" style="width: 10rem">
+              <option selected value=""></option>
+            </select>
+
+            <div class="col-auto">
+              <label for="piano-open-name" class="col-form-label">文件名：</label>
+            </div>
+            <select class="form-select" id="piano-open-name" style="width: 10rem">
+              <option selected value=""></option>
+            </select>
+
+            <div class="col-auto">
+              <button id="piano-open-btn" class="btn btn-primary">打开</button>
+            </div>
+          </div>
+
+          <div class="spacing-box"></div>
+
+        </div>
+
+        <div class="h-100 d-none">
+
+          <div class="row mb-4">
+            <h4>运行推理</h4>
+          </div>
+
+          <div class="h-60 row p-3" style="height:60%;">
+            <div id="infer-group-list" class="col-2 list-group" style="height:100%; overflow: auto;">
+              <div>
+                <h5>组名</h5>
+              </div>
+              <div class="infer-group-box"></div>
+            </div>
+
+            <div id="infer-file-list" class="col-2 list-group pe-0 me-2" style="height:100%; overflow: auto;">
+              <div>
+                <h5>文件名</h5>
+              </div>
+              <div class="infer-files-box"></div>
+            </div>
+
+            <div class="col-7 pt-0 pb-0" style="height:100%;">
+              <textarea id="infer-file-output" class="ps-2 pe-2" rows="20"
+                style="width: 100%; height: 100%; resize: none;" disabled>从左侧选择一个推理文件，以预览推理参数。</textarea>
+            </div>
+          </div>
+
+          <div class="row mt-4 p-3">
+
+            <div class="col-2"></div>
+            <div class="col-2 pe-0 me-2"></div>
+
+            <div class="col-2 pt-0 pb-0 text-start">
+              <button id="infer-run" class="btn btn-primary">运行推理</button>
+            </div>
+
+            <!-- <div class="col-5" style="display: none; align-content: center; align-items: center;">
+              <div class="progress" style="flex: 1; border: 1px solid #ccc;" role="progressbar">
+                <div id="infer-progress" class="progress-bar" style="width: 25%">25%</div>
+              </div>
+            </div> -->
+
+          </div>
+
+          <div class="row mt-4 p-3">
+
+            <div class="col-2"></div>
+            <div class="col-2 pe-0 me-2"></div>
+
+            <div class="col-2 pt-0 pb-0 text-start" id="infer-audio-box" style="display: none;">
+              <audio controls src=""></audio>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="h-100 d-none">
+
+          <div class="row mb-4">
+            <h4>配置组管理</h4>
+          </div>
+
+          <div class="row mt-4 p-3">
+            <div class="col-1">
+              <label for="config-group-list" class="col-form-label">组名：</label>
+            </div>
+            <select class="form-select" id="config-group-list" style="width: 10rem">
+              <option selected value="xy">default</option>
+            </select>
+            <div class="col-auto">
+              <button id="config-del" class="btn btn-primary">删除该组</button>
+            </div>
+
+            <div class="col-auto">
+              <label for="config-new-group" class="col-form-label">新建组：</label>
+            </div>
+            <div class="col-auto">
+              <input id="config-new-group" class="form-control" placeholder="输入组名">
+            </div>
+            <div class="col-auto">
+              <button id="config-new-add" class="btn btn-primary">创建</button>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="log-interval" class="col-form-label">日志间隔：</label>
+            </div>
+            <div class="col-auto">
+              <input id="log-interval" type="number" min="1000" step="1000" class="form-control" placeholder="单位：毫秒">
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="rand-seed" class="col-form-label">随机种子：</label>
+            </div>
+            <div class="col-auto">
+              <input id="rand-seed" type="number" class="form-control" placeholder="整数值">
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="train-epoch" class="col-form-label">训练代际数：</label>
+            </div>
+            <div class="col-auto">
+              <input id="train-epoch" type="number" min="1000" step="1000" class="form-control" placeholder="推荐 > 3000">
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="train-lr" class="col-form-label">训练学习率：</label>
+            </div>
+            <div class="col-auto">
+              <input id="train-lr" class="form-control" placeholder="推荐 0.0001~0.001">
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="train-batch-size" class="col-form-label">训练批次数量：</label>
+            </div>
+            <div class="col-auto">
+              <input id="train-batch-size" type="number" min="4" class="form-control" placeholder="范围在 4~12">
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-2">
+              <label for="enable-fp16" class="col-form-label">是否启用半精度：</label>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="enable-fp16" style="width: 10rem">
+                <option selected value="false">False</option>
+                <option value="true">True</option>
+              </select>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row mt-4 p-3">
+            <div class="col-auto">
+              <button id="config-save" class="btn btn-primary">配置保存</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/pianoroll.js"></script>
+  <script src="/static/piano-controls.js"></script>
+  <script src="/static/sidebar.js"></script>
+</body>
+
+</html>

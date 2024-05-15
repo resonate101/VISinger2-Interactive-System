@@ -1,0 +1,4 @@
+*/__pycache__
+*/*/__pycache__
+backend/storage
+backend/temp
